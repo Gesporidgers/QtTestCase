@@ -21,7 +21,7 @@ Window {
     }
 
     TextField {
-        id: textField
+        id: textField1
         x: 0
         y: 53
         placeholderText: "Введите что нужно найти"
@@ -39,16 +39,17 @@ Window {
         title: qsTr("Поле поиска")
 
         RadioButton {
-            id: radioButton
+            id: fioRadio
             x: -12
             y: -6
             width: 109
             height: 28
             text: qsTr("ФИО")
+			checked: true
         }
 
         RadioButton {
-            id: radioButton1
+            id: grRadio
             x: 98
             y: -6
             width: 109
@@ -65,6 +66,9 @@ Window {
         height: 40
         text: "Поиск"
         display: AbstractButton.TextOnly
+		onClicked: {
+			studentModel.searchDB(textField1.text, fioRadio.checked)
+		}
     }
     Row {
                 height: 20
@@ -81,7 +85,7 @@ Window {
         width: 640
         height: 350
         objectName: "listv"
-
+		model: studentModel
         delegate: Row {
             height: 30
             TextField { text: name; width: 180;readOnly: true; height: 30}

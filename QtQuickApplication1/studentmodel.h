@@ -15,7 +15,9 @@ public:
 		GroupRole, LoginRole, PasswordRole
 	};
 
-	StudentModel(QObject *parent = nullptr);
+	StudentModel(std::string, QObject *parent = nullptr);
+	Q_INVOKABLE void searchDB(QString, bool);
+	void InitModel();
 	void AddStudent(const student &student);
 	int rowCount(const QModelIndex &parent = QModelIndex()) const;
 	QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
@@ -23,6 +25,7 @@ protected:
 	QHash <int, QByteArray> roleNames() const;
 private:
 	QList<student> students;
+	std::string connectionString;
 };
 
 #endif // !

@@ -1,5 +1,7 @@
 ﻿#include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include <QQmlContext>
+#include <QDebug>
 #include <pqxx/pqxx>
 #include <iostream>
 #include "student.h"
@@ -15,33 +17,23 @@ int main(int argc, char *argv[])
 	QGuiApplication app(argc, argv);
 	
 	std::string connectionString = "host=localhost port=5432 dbname=postgres user=postgres password =123456";
-	StudentModel model;
+	StudentModel model(connectionString);
 	try
 	{
-		pqxx::connection connectionObject(connectionString.c_str());
-
-		pqxx::work worker(connectionObject);
-		pqxx::result response = worker.exec("SELECT * FROM students");
-
-		for (size_t i = 0; i < response.size(); i++)
-		{
-			model.AddStudent(response[i]);
-		}
+		model.InitModel();
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << e.what() << std::endl;
+		qDebug() << e.what();
 	}
 
 	QQmlApplicationEngine engine;
+	engine.rootContext()->setContextProperty("studentModel", QVariant::fromValue(&model));
 	engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 	if (engine.rootObjects().isEmpty())
 		return -1;
 
-	QObject* mylist = engine.rootObjects().first()->findChild<QObject*>("listv");
-	mylist->setProperty("model", QVariant::fromValue(&model));
-	QObject* btn = engine.rootObjects().first()->findChild<QObject*>("buttonSearch");
-	//QObject::connect(btn,QPus)
+	
 	return app.exec();
 }
 

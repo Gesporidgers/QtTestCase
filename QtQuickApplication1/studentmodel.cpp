@@ -1,4 +1,5 @@
 ﻿#include "studentmodel.h"
+#include <QDebug>
 
 void StudentModel::AddStudent(const student &newstudent) {
 	beginInsertRows(QModelIndex(), rowCount(), rowCount());
@@ -6,11 +7,52 @@ void StudentModel::AddStudent(const student &newstudent) {
 	endInsertRows();
 }
 
-StudentModel::StudentModel(QObject* parent) : QAbstractListModel(parent) {}
+StudentModel::StudentModel(std::string conn, QObject* parent) : QAbstractListModel(parent), connectionString(conn) {}
+
+Q_INVOKABLE void StudentModel::searchDB(QString textToSearch, bool fio)
+{
+	beginResetModel();
+	students.clear();
+	try {
+		pqxx::connection connectionObject(connectionString.c_str());
+		//qDebug() << textToSearch.toStdString().c_str();
+		pqxx::work worker(connectionObject);
+		pqxx::result response;
+		if (fio) {
+			response = worker.exec_params("SELECT * FROM students WHERE fio like '%' || $1 || '%'", textToSearch.toStdString());
+
+		}
+		else {
+			response = worker.exec_params("SELECT * FROM students WHERE gr like '%' || $1 || '%'", textToSearch.toStdString());
+		}
+		for (size_t i = 0; i < response.size(); i++)
+		{
+			AddStudent(response[i]);
+		}
+	}
+	catch (const std::exception& e)
+	{
+		qDebug() << e.what();
+	}
+	endResetModel();
+}
+
+
+void StudentModel::InitModel() {
+
+	pqxx::connection connectionObject(connectionString.c_str());
+
+	pqxx::work worker(connectionObject);
+	pqxx::result response = worker.exec("SELECT * FROM students");
+	for (size_t i = 0; i < response.size(); i++)
+	{
+		AddStudent(response[i]);
+	}
+}
 
 int StudentModel::rowCount(const QModelIndex &parent) const {
 	Q_UNUSED(parent)
-	return students.count();
+		return students.count();
 }
 
 QVariant StudentModel::data(const QModelIndex &index, int role) const {
